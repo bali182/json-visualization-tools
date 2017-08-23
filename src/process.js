@@ -21,6 +21,11 @@ const splitToLines = tokens => {
 
 const process = ({ lines = false, semantics = false }) => input => {
   const tokens = tokenize(input)
+
+  tokens.forEach((token, i) => {
+    token.id = i + 1
+  })
+
   if (semantics) {
     addSemantics(tokens)
   }
