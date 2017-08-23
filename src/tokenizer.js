@@ -31,7 +31,7 @@ const fail = (char, index) => new Error(`Unexpected character '${char}' at posit
 
 const consumeWord = (state, index) => {
   let char = current(state)
-  while (!done(state) && char !== ' ' && char !== '\t' && char !== '\r' && char !== '\n') {
+  while (!done(state) && char !== ' ' && char !== '\t' && char !== '\r' && char !== '\n' && char !== '}' && char !== ']' && char !== ',') {
     consume(state, 1)
     char = current(state)
   }
@@ -120,6 +120,9 @@ const consumeToken = state => {
 }
 
 const tokenize = input => {
+  if (typeof input !== 'string') {
+    throw new Error(`Unexpected input ${input} of type  ${typeof input}. Expected string.`)
+  }
   const state = { input, index: 0 }
   const tokens = []
   while (!done(state)) {
