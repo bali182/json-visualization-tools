@@ -1,18 +1,10 @@
 import {
   BOOLEAN, COLON, COMMA, NULL, NUMBER, STRING, LINEBREAK, LEFT_CURLY_BRACKET,
   LEFT_SQUARE_BRACKET, RIGHT_CURLY_BRACKET, RIGHT_SQUARE_BRACKET, WHITESPACE
-} from './tokens'
-
-// state modifying primitive
-const consume = (state, amount = 1) => {
-  state.index += amount
-}
+} from './tokenTypes'
+import { current, done, previous, sliceFrom, consume } from './utils'
 
 // state inspecting primitives
-const done = state => state.index >= state.input.length
-const current = state => state.input[state.index]
-const previous = state => state.input[state.index - 1]
-const sliceFrom = (state, index) => state.input.slice(index, state.index)
 const matches = ({ input, index }, string = '') => {
   if (index + string.length > input.length) {
     return false

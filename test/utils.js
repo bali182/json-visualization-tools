@@ -1,17 +1,13 @@
-import tokenize from '../src/tokenizer'
+import createProcessor from '../src/process'
 
-export const expectToken = expectedToken => input => {
-  const tokens = tokenize(input)
-  expect(tokens).toHaveLength(1)
-  const [actualToken] = tokens
-  expect(actualToken).toMatchObject(expectedToken)
-}
-
-export const expectTokens = expected => input => {
-  const actual = tokenize(input)
-  expect(actual).toHaveLength(expected.length)
-  expected.forEach((et, i) => {
-    const at = actual[i]
-    expect(at).toMatchObject(et)
-  })
+export const createExpectTokens = config => {
+  const process = createProcessor(config)
+  return expected => input => {
+    const actual = process(input)
+    expect(actual).toHaveLength(expected.length)
+    expected.forEach((et, i) => {
+      const at = actual[i]
+      expect(at).toMatchObject(et)
+    })
+  }
 }

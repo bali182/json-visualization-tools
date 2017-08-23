@@ -1,8 +1,10 @@
 import {
   LEFT_CURLY_BRACKET, RIGHT_CURLY_BRACKET, LEFT_SQUARE_BRACKET,
   RIGHT_SQUARE_BRACKET, COLON, COMMA, STRING, BOOLEAN, NULL, NUMBER
-} from '../src/tokens'
-import { expectTokens } from './utils'
+} from '../src/tokenTypes'
+import { createExpectTokens } from './utils'
+
+const expectTokens = createExpectTokens({ lines: false, semantics: false })
 
 describe('tokenize objects', () => {
   it('should tokenize empty object', () => {
