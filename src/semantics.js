@@ -3,7 +3,7 @@ import {
   WHITESPACE, LINEBREAK, STRING, COLON, NUMBER, BOOLEAN, NULL, COMMA
 } from './tokenTypes'
 import { KEY, VALUE } from './semanticTypes'
-import { current, done, consume } from './utils'
+import { current, done, consume, failWithMessage } from './utils'
 
 function consumeObject(state, path) {
   consume(state, 1) // consume {
@@ -12,7 +12,7 @@ function consumeObject(state, path) {
   }
   const closeCurlyToken = current(state)
   if (closeCurlyToken.type !== RIGHT_CURLY_BRACKET) {
-    throw new Error(`expected ${RIGHT_CURLY_BRACKET}, got ${closeCurlyToken.type}`)
+    failWithMessage(`expected ${RIGHT_CURLY_BRACKET}, got ${closeCurlyToken.type}`)
   }
   consume(state, 1) // consume }
 }
@@ -29,7 +29,7 @@ function consumeArray(state, path) {
   }
   const closeSquareToken = current(state)
   if (closeSquareToken.type !== RIGHT_SQUARE_BRACKET) {
-    throw new Error(`expected ${RIGHT_SQUARE_BRACKET}, got ${closeSquareToken.type}`)
+    failWithMessage(`expected ${RIGHT_SQUARE_BRACKET}, got ${closeSquareToken.type}`)
   }
   consume(state, 1) // consume ]
 }
@@ -37,7 +37,7 @@ function consumeArray(state, path) {
 function consumeKeyValuePair(state, path) {
   const keyToken = current(state)
   if (keyToken.type !== STRING) {
-    throw new Error(`expected ${STRING}, got ${keyToken.type}`)
+    failWithMessage(`expected ${STRING}, got ${keyToken.type}`)
   }
   keyToken.semantics = {
     path: Array.from(path),
@@ -48,7 +48,7 @@ function consumeKeyValuePair(state, path) {
 
   const possibleColonToken = current(state)
   if (possibleColonToken && possibleColonToken.type !== COLON) {
-    throw new Error(`expected ${COLON}, got ${possibleColonToken.type}`)
+    failWithMessage(`expected ${COLON}, got ${possibleColonToken.type}`)
   }
 
   consume(state, 1) // consume :
@@ -87,20 +87,18 @@ function consumeValue(state, path) {
       consumeTerminal(state, path)
       break
     default:
-      throw new Error(`unexpected token ${token.type}`)
+      throw failWithMessage(`unexpected token ${token.type}`)
   }
 }
 
-const addSemantics = tokens => {
+export default function semantics(tokens) {
   const state = {
     index: 0,
     input: tokens.filter(({ type }) => type !== WHITESPACE && type !== LINEBREAK),
   }
   consumeValue(state, [])
   if (!done(state)) {
-    throw new Error(`expected EOF, got ${current(state).type}`)
+    throw failWithMessage(`expected EOF, got ${current(state).type}`)
   }
   return tokens
 }
-
-export default addSemantics

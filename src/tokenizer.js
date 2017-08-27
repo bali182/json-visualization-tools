@@ -2,10 +2,10 @@ import {
   BOOLEAN, COLON, COMMA, NULL, NUMBER, STRING, LINEBREAK, LEFT_CURLY_BRACKET,
   LEFT_SQUARE_BRACKET, RIGHT_CURLY_BRACKET, RIGHT_SQUARE_BRACKET, WHITESPACE
 } from './tokenTypes'
-import { current, done, previous, sliceFrom, consume } from './utils'
+import { current, done, previous, sliceFrom, consume, failWithMessage } from './utils'
 
 // state inspecting primitives
-const matches = ({ input, index }, string = '') => {
+function matches({ input, index }, string = '') {
   if (index + string.length > input.length) {
     return false
   }
@@ -17,11 +17,15 @@ const matches = ({ input, index }, string = '') => {
   return true
 }
 
-// other utilities
-const newToken = (type, value, raw, index) => ({ type, value, raw, index })
-const fail = (char, index) => new Error(`Unexpected character '${char}' at position ${index}`)
+function failAtPosition(char, index) {
+  failWithMessage(`Unexpected character '${char}' at position ${index}`)
+}
 
-const consumeWord = (state, index) => {
+function newToken(type, value, raw, index) {
+  return { type, value, raw, index }
+}
+
+function consumeWord(state, index) {
   let char = current(state)
   while (!done(state) && char !== ' ' && char !== '\t' && char !== '\r' && char !== '\n' && char !== '}' && char !== ']' && char !== ',') {
     consume(state, 1)
@@ -30,23 +34,23 @@ const consumeWord = (state, index) => {
   return sliceFrom(state, index)
 }
 
-const consumeText = (state, type, raw, index, value = raw) => {
+function consumeText(state, type, raw, index, value = raw) {
   const token = newToken(type, value, raw, index)
   consume(state, raw.length)
   return token
 }
 
-const consumeNewLine = (state, char, index) => {
+function consumeNewLine(state, char, index) {
   if (char === '\n') {
     return consumeText(state, LINEBREAK, char, index)
   } else if (matches(state, '\r\n')) {
     return consumeText(state, LINEBREAK, '\r\n', index)
   } else {
-    return fail(char, index)
+    return failAtPosition(char, index)
   }
 }
 
-const consumeWhiteSpace = (state, _, index) => {
+function consumeWhiteSpace(state, _, index) {
   consume(state, 1)
   loop: while (!done(state)) {
     switch (current(state)) {
@@ -62,7 +66,7 @@ const consumeWhiteSpace = (state, _, index) => {
   return newToken(WHITESPACE, value, value, index)
 }
 
-const consumeString = (state, char, index) => {
+function consumeString(state, char, index) {
   consume(state, 1) // consume the leading "
   while (!done(state)) {
     switch (current(state)) {
@@ -79,10 +83,10 @@ const consumeString = (state, char, index) => {
     }
     consume(state, 1)
   }
-  return fail(char, index)
+  return failAtPosition(char, index)
 }
 
-const consumeToken = state => {
+function consumeToken(state) {
   const char = current(state)
   const index = state.index
   switch (char) {
@@ -111,9 +115,9 @@ const consumeToken = state => {
   }
 }
 
-const tokenize = input => {
+function tokenize(input) {
   if (typeof input !== 'string') {
-    throw new Error(`Unexpected input ${input} of type  ${typeof input}. Expected string.`)
+    failWithMessage(`Unexpected input ${input} of type  ${typeof input}. Expected string.`)
   }
   const state = { input, index: 0 }
   const tokens = []

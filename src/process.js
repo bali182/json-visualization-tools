@@ -1,8 +1,9 @@
 import tokenize from './tokenizer'
 import addSemantics from './semantics'
 import { LINEBREAK } from './tokenTypes'
+import { uuid4 } from './utils'
 
-const splitToLines = tokens => {
+function splitToLines(tokens) {
   const lines = []
   let line = []
   tokens.forEach(token => {
@@ -19,17 +20,15 @@ const splitToLines = tokens => {
   return lines
 }
 
-const process = ({ lines = false, semantics = false }) => input => {
-  const tokens = tokenize(input)
+export default function process({ lines = false, semantics = false }) {
+  return input => {
+    const tokens = tokenize(input)
 
-  tokens.forEach((token, i) => {
-    token.id = i + 1
-  })
+    tokens.forEach(token => Object.assign(token, { id: uuid4() }))
 
-  if (semantics) {
-    addSemantics(tokens)
+    if (semantics) {
+      addSemantics(tokens)
+    }
+    return lines ? splitToLines(tokens) : tokens
   }
-  return lines ? splitToLines(tokens) : tokens
 }
-
-export default process
